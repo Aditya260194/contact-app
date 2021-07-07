@@ -10,7 +10,6 @@ class AddContact extends React.Component {
     add = (e) => {
         /* to prevent reloading of page when form submitted*/
         e.preventDefault()
-        console.log(e.target.name)
         if(this.state.name === '' || this.state.email=== '') {
             alert("Please input");
             return
@@ -19,7 +18,6 @@ class AddContact extends React.Component {
         this.setState({
             name:"", email:""
         })
-        console.log(this.state)
     }
 
     render() {

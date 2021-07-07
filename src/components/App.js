@@ -4,7 +4,7 @@ import './App.css';
 import Header from './Header';
 import AddContact from './AddContact';
 import ContactList from './ContactList.js';
-import uuid from 'uuidv4'
+import { uuid } from 'uuidv4'
 
 function App() {
 
@@ -25,7 +25,8 @@ function App() {
   const addContactHandler = (contact) =>{
     console.log("addContactHandler " , contact);
     /* to add contact to contacts we use setContacts which we we dfined earlier as hook */
-    setContacts([...contacts, contact]);
+    //setContacts([...contacts, contact]);
+    setContacts([...contacts, {id: uuid(), ...contact}]);
   }
 
   /*storing contacts in local storage*/
@@ -41,13 +42,20 @@ function App() {
       console.log("use Effect setItem ");
     }, [contacts]);
 
+  const deleteContactHandler = (id) => {
+    const newContacts = contacts.filter((contact) => {
+      return contact.id !== id;
+    });
+    setContacts(newContacts);
+  };
+
   return (
     <div className='ui container'>
       <Header/>
       {/* to fetch data from child to parent we use handler props*/}
       <AddContact addContactHandler={addContactHandler}/>
       {/* passing conatcts as props*/}
-      <ContactList contacts={contacts}/>
+      <ContactList contacts={contacts} getContactId={deleteContactHandler}/>
     </div>
   );
 }
