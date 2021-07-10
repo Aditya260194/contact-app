@@ -11,13 +11,13 @@ const ContactList = (props) => {
 
     const renderContactList = props.contacts.map((contact) => {
         return (
-            <ContactCard contact={contact} clickHandler={getContactId}
+            <ContactCard contact={contact}
                 key={contact.id}></ContactCard>
         );
     }
     );
     return (
-        <div class='ui main'>
+        <div className='ui main'>
             <h2>Contact List</h2>
             <Link to="/add">
                 <button className="ui button blue right">Add Contact</button>
