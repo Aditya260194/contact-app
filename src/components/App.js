@@ -6,8 +6,10 @@ import AddContact from './AddContact';
 import ContactList from './ContactList.js';
 import ContactDetails from './ContactDetails.js';
 import DeleteContact from './DeleteContact';
+import EditContact from './EditContact';
 import { uuid } from 'uuidv4'
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import api from '../api/contact'
 
 function App() {
 
@@ -25,18 +27,33 @@ function App() {
   const [contacts, setContacts] = useState([]);
   const LOCAL_STORAGE_KEY = "contacts";
 
-  const addContactHandler = (contact) => {
+  //Retrieve contacts
+  const retrieveContacts = async () => {
+    const response = await api.get("/contacts")
+    return response.data;
+  };
+
+  const addContactHandler = async (contact) => {
     console.log("addContactHandler ", contact);
     /* to add contact to contacts we use setContacts which we we dfined earlier as hook */
     //setContacts([...contacts, contact]);
-    setContacts([...contacts, { id: uuid(), ...contact }]);
-  }
+
+    const request = { id: uuid(), ...contact };
+
+    const response = await api.post("/contacts", request);
+    setContacts([...contacts, response.data]);
+  };
 
   /*storing contacts in local storage*/
   useEffect(() => {
-    const retrieveContacts = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-    console.log("use EffectretrieveContacts", retrieveContacts);
-    if (retrieveContacts) setContacts(retrieveContacts);
+    // const retrieveContacts = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    // console.log("use EffectretrieveContacts", retrieveContacts);
+    //if (retrieveContacts) setContacts(retrieveContacts);
+    const geAllContacts = async () => {
+      const allContacts = await retrieveContacts();
+      if (allContacts) setContacts(allContacts);
+    };
+    geAllContacts();
   }, []);
 
   /*stpring contacts in local storage */
@@ -45,44 +62,59 @@ function App() {
     console.log("use Effect setItem ");
   }, [contacts]);
 
-  const deleteContactHandler = (id) => {
+  const deleteContactHandler = async (id) => {
+    await api.delete(`/contacts/${id}`);
     const newContacts = contacts.filter((contact) => {
       return contact.id !== id;
     });
     setContacts(newContacts);
   };
 
-  return (
-    <div className='ui container'>
-      <Router>
-        <Header />
-        <div>
+  const updateContactHandler = async (contact) => {
+    const response = await api.put(`/contacts/${contact.id}`, contact);
+    const { id, name, email } = response.data;
+    setContacts(
+      contacts.map((contact) => {
+    return contact.id == id ? { ...response.data } : contacts;
+  }));
+};
+
+return (
+  <div className='ui container'>
+    <Router>
+      <Header />
+      <div>
         <Switch>
-          <Route path="/" exact 
-              render = { (props) => (
-                  <ContactList {...props} 
-                  contacts={contacts}
-                  />
-              )}
+          <Route path="/" exact
+            render={(props) => (
+              <ContactList {...props}
+                contacts={contacts}
+              />
+            )}
           />
-          <Route path="/add" render = { (props) => (
-                  <AddContact {...props} 
-                  addContactHandler={addContactHandler}
-                  />
-              )}/>
-          <Route path="/contact/:id" component={ContactDetails}/>
-          <Route path="/deletecontact/:id" render = { (props) => (
-                  <DeleteContact {...props} 
-                  contacts={contacts} clickHandler={deleteContactHandler}
-                  />
-              )} />
+          <Route path="/add" render={(props) => (
+            <AddContact {...props}
+              addContactHandler={addContactHandler}
+            />
+          )} />
+          <Route path="/contact/:id" component={ContactDetails} />
+          <Route path="/deletecontact/:id" render={(props) => (
+            <DeleteContact {...props}
+              contacts={contacts} clickHandler={deleteContactHandler}
+            />
+          )} />
+          <Route path="/editcontact/" render={(props) => (
+            <EditContact {...props}
+              contacts={contacts} updateContactHandler={updateContactHandler}
+            />
+          )} />
         </Switch>
-        </div>
-        {/*<AddContact addContactHandler={addContactHandler} /> }
+      </div>
+      {/*<AddContact addContactHandler={addContactHandler} /> }
         {//<ContactList contacts={contacts} getContactId={deleteContactHandler} /> */}
-      </Router>
-    </div>
-  );
+    </Router>
+  </div>
+);
 }
 
 export default App;
